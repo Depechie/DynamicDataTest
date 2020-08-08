@@ -11,26 +11,46 @@ namespace StravaCaching.Models
 {
     public class ActivityIncrementalLoading : CachedIncrementalLoadingBase<ActivitySummary>
     {
+        public ActivityIncrementalLoading(CachingService cachingService)
+        {
+            CachingService = cachingService;
+        }
+
         public CachingService CachingService { get; set; }
 
-        protected override Task<int> FetchData(int page, int pageSize)
+        protected override async Task<int> FetchData(int page, int pageSize)
         {
             TaskCompletionSource<int> taskCompletionSource = new TaskCompletionSource<int>();
 
-            CachingService.GetActivities(page, pageSize).Subscribe(result =>
+            if (page == 1)
             {
-                if (!string.IsNullOrEmpty(result))
+                List<ActivitySummary> activities = Unmarshaller<List<ActivitySummary>>.Unmarshal(await CachingService.GetFriendsAvtivitiesDataCache());
+                CachedItems.AddOrUpdate(activities);
+                CachedItems.SelectMany(async _ =>
                 {
-                    IEnumerable<ActivitySummary> activities = Unmarshaller<IEnumerable<ActivitySummary>>.Unmarshal(result);
-                    if (activities != null && activities.Any())
-                        //CachedItems.EditDiff(activities, EqualityComparer<ActivitySummary>.Default);
-                        CachedItems.AddOrUpdate(activities); //TODO: Glenn - The AddOrUpdate does look a bit to harsh - flashing list!
+                    await CachingService.GetActivities(++page, pageSize);
+                    return Unit.Default;
+                });
+                taskCompletionSource.TrySetResult(0);
+            }
+            else
+            {
+                CachingService.GetActivities(page, pageSize).Subscribe(result =>
+                {
+                    if (!string.IsNullOrEmpty(result))
+                    {
+                        IEnumerable<ActivitySummary> activities = Unmarshaller<IEnumerable<ActivitySummary>>.Unmarshal(result);
+                        if (activities != null && activities.Any())
+                            CachedItems.Edit(updater => { activities.ToList().ForEach(i => updater.AddOrUpdate(i, EqualityComparer<ActivitySummary>.Default)); });
+                    //CachedItems.EditDiff(activities, EqualityComparer<ActivitySummary>.Default);
+                    //CachedItems.AddOrUpdate(activities); //TODO: Glenn - The AddOrUpdate does look a bit to harsh - flashing list!
 
                     taskCompletionSource.TrySetResult(activities.Count());
-                }
+                    }
 
-                taskCompletionSource.TrySetResult(0);
-            });
+                    taskCompletionSource.TrySetResult(0);
+                });
+            }
 
             return taskCompletionSource.Task;
         }

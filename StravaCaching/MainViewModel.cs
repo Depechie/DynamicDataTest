@@ -12,18 +12,14 @@ namespace StravaCaching
 {
     public class MainViewModel : BaseClass
     {
-        private CachingService _cachingService;
-        private StravaService _stravaService;
-
-        private ActivityIncrementalLoading _activities = new ActivityIncrementalLoading();
+        private ActivityIncrementalLoading _activities;
         public ActivityIncrementalLoading Activities => _activities;
 
         private readonly IComparer<ActivitySummary> _comparer = SortExpressionComparer<ActivitySummary>.Descending(item => item.StartDate);
 
         public MainViewModel(StravaService stravaService)
         {
-            _stravaService = stravaService;
-            _cachingService = _activities.CachingService = new CachingService(_stravaService);
+            _activities = new ActivityIncrementalLoading(new CachingService(stravaService));
 
             var loader = _activities.CachedItems.Connect()
                     .Sort(_comparer)

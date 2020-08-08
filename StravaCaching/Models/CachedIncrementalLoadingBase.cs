@@ -18,13 +18,13 @@ namespace StravaCaching.Models
 
         public SourceCache<T, long> CachedItems = new SourceCache<T, long>(item => item.Id);
 
+        public bool HasMoreItems => true;
+
         public IAsyncOperation<LoadMoreItemsResult> LoadMoreItemsAsync(uint count)
         {
             _loading = true;
             return AsyncInfo.Run((c) => LoadMoreItemsAsync(c, count));
         }
-
-        public bool HasMoreItems => true;
 
         private async Task<LoadMoreItemsResult> LoadMoreItemsAsync(CancellationToken c, uint count)
         {

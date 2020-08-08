@@ -25,13 +25,13 @@ namespace StravaCaching.Services
 
         public IObservable<string> GetActivities(int page, int pageSize)
         {
-            if (page == 1)
-                return Observable.Concat(GetFriendsAvtivitiesDataCache().ToObservable(), GetFriendsActivitiesWeb(page, pageSize).ToObservable());
-            else
+            //if (page == 1)
+            //    return Observable.Concat(GetFriendsAvtivitiesDataCache().ToObservable(), GetFriendsActivitiesWeb(page, pageSize).ToObservable());
+            //else
                 return GetFriendsActivitiesWeb(page, pageSize).ToObservable();
         }
 
-        private Task<string> GetFriendsAvtivitiesDataCache()
+        public Task<string> GetFriendsAvtivitiesDataCache()
         {
             return Task.Run(async () =>
             {
@@ -44,7 +44,7 @@ namespace StravaCaching.Services
             });
         }
 
-        private Task<string> GetFriendsActivitiesWeb(int page, int pageSize)
+        public Task<string> GetFriendsActivitiesWeb(int page, int pageSize)
         {
             return Task.Run(async () =>
             {

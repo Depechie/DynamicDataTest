@@ -13,11 +13,22 @@ namespace StravaNetStandard.Models
 
         public bool Equals(ActivityMeta other)
         {
-            if (other == null)
-                return false;
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Id == other.Id;
+        }
 
-            //TODO: Glenn - For now, as test, we will assume that the Id itself is our Equal check ( add extra properties in future )
-            return Id.Equals(other.Id);            
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((ActivityMeta)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
         }
     }
 }
